@@ -45,7 +45,14 @@ namespace Mal {
                     Console.WriteLine("IOException: " + e.Message);
                     break;
                 }
-                Console.WriteLine(PRINT(RE(null, line)));
+                try
+                {
+                    Console.WriteLine(PRINT(RE(null, line)));
+                }
+                catch (ArgumentException e)
+                {
+                    Console.WriteLine(e.Message);
+                }
             }
         }
     }
