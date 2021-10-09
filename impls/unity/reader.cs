@@ -39,13 +39,46 @@ namespace Mal
             else if (token[0] == '}')
                 throw new ArgumentException("unbalanced: Unexpected } in input");
             else if (token[0] == '(')
-                return listToMalList(read_list(en,')'));
+                return listToMalList(read_list(en, ')'));
             else if (token[0] == '[')
                 return listToMalVector(read_list(en, ']'));
             else if (token[0] == '{')
                 return listToMalMap(read_list(en, '}'));
+            else if (token[0] == '\'')
+                return listToMalList(read_quote(en, "quote"));
+            else if (token[0] == '`')
+                return listToMalList(read_quote(en, "quasiquote"));
+            else if (token[0] == '~')
+                return listToMalList(read_quote(en, "unquote"));
+            else if (token[0] == '@')
+                return listToMalList(read_quote(en, "deref"));
+            else if (token[0] == '^')
+                return listToMalList(read_meta(en));
             else
                 return read_atom(en);
+        }
+
+        private static List<types.MalVal> read_meta(IEnumerator<Match> en)
+        {
+            List<types.MalVal> l = new List<types.MalVal>();
+            en.MoveNext(); //consume quote
+            l.Add(new types.MalAtom("with-meta"));
+            types.MalVal metavalue = read_form(en);
+            en.MoveNext(); //consume right paren or atom
+            types.MalVal value = read_form(en);
+            l.Add(value);
+            l.Add(metavalue);
+            return l;
+        }
+
+        private static List<types.MalVal> read_quote(IEnumerator<Match> en, string formName)
+        {
+            List<types.MalVal> l = new List<types.MalVal>();
+            en.MoveNext(); //consume quote
+            l.Add(new types.MalAtom(formName));
+            types.MalVal value = read_form(en);
+            l.Add(value);
+            return l;
         }
 
         private static List<types.MalVal> read_list(IEnumerator<Match> en, char bracket)
