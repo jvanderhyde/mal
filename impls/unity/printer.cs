@@ -25,8 +25,16 @@ namespace Mal
                 pr_list(tree as types.MalCollection, sb, '[', ']');
             else if (tree is types.MalMap)
                 pr_map(tree as types.MalMap, sb);
-            else if (tree is types.MalAtom)
-                pr_atom(tree as types.MalAtom, sb);
+            else if (tree is types.MalSymbol)
+                pr_symbol(tree as types.MalSymbol, sb);
+            else if (tree is types.MalNumber)
+                pr_number(tree as types.MalNumber, sb);
+            else if (tree is types.MalString)
+                pr_string(tree as types.MalString, sb);
+            else if (tree is types.MalKeyword)
+                pr_keyword(tree as types.MalKeyword, sb);
+            else if (tree is types.MalFunc)
+                pr_func(tree as types.MalFunc, sb);
             else
                 throw new ArgumentException("Unknown Mal type in the tree");
         }
@@ -64,9 +72,33 @@ namespace Mal
             sb.Append('}');
         }
 
-        private static void pr_atom(types.MalAtom tree, StringBuilder sb)
+        private static void pr_number(types.MalNumber tree, StringBuilder sb)
         {
             sb.Append(tree.value);
+        }
+
+        private static void pr_symbol(types.MalSymbol tree, StringBuilder sb)
+        {
+            sb.Append(tree.name);
+        }
+
+        private static void pr_string(types.MalString tree, StringBuilder sb)
+        {
+            sb.Append("\"");
+            sb.Append(tree.value);
+            sb.Append("\"");
+        }
+
+        private static void pr_keyword(types.MalKeyword tree, StringBuilder sb)
+        {
+            sb.Append(":");
+            sb.Append(tree.name.Substring(1));
+        }
+
+        private static void pr_func(types.MalFunc tree, StringBuilder sb)
+        {
+            sb.Append("Function");
+            //sb.Append(tree.value);
         }
 
     }

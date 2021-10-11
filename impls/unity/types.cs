@@ -14,13 +14,70 @@ namespace Mal
         {
         }
 
-        public class MalAtom : MalVal
+        public abstract class MalAtom : MalVal
+        {
+        }
+
+        public class MalSymbol : MalAtom
+        {
+            public readonly string name;
+
+            public MalSymbol(string name)
+            {
+                this.name = name;
+            }
+        }
+
+        public class MalNumber : MalAtom
+        {
+            public readonly float value;
+
+            public MalNumber(float value)
+            {
+                this.value = value;
+            }
+        }
+
+        public class MalString : MalAtom
         {
             public readonly string value;
 
-            public MalAtom(string value)
+            public MalString(string value)
             {
                 this.value = value;
+            }
+        }
+
+        public class MalKeyword : MalAtom
+        {
+            public readonly string name;
+
+            public MalKeyword(string name)
+            {
+                //using Unicode "Interlinear Annotation Anchor" to mark keywords
+                // internally instead of ':', since strings may contain colons.
+                this.name = '\ufff9' + name.Substring(1);
+            }
+        }
+
+        public abstract class MalFunc : MalAtom
+        {
+            public abstract MalVal apply(MalList arguments);
+        }
+
+        public class MalBinaryOperator : MalFunc
+        {
+            public readonly Func<float, float, float> value;
+
+            public MalBinaryOperator(Func<float, float, float> value)
+            {
+                this.value = value;
+            }
+
+            public override MalVal apply(MalList arguments)
+            {
+                float result = value(((MalNumber)arguments.first()).value, ((MalNumber)arguments.rest().first()).value);
+                return new MalNumber(result);
             }
         }
 
@@ -138,6 +195,11 @@ namespace Mal
                     throw new InvalidOperationException("The list is empty; cannot get the rest.");
                 return new MalList(head.link);
             }
+
+            public bool isEmpty()
+            {
+                return (head == null);
+            }
         }
 
         public class MalVector : MalCollection
@@ -167,6 +229,11 @@ namespace Mal
             public MalVal nth(int index)
             {
                 return value[index];
+            }
+
+            public bool isEmpty()
+            {
+                return (value.Count == 0);
             }
         }
 

@@ -62,7 +62,7 @@ namespace Mal
         {
             List<types.MalVal> l = new List<types.MalVal>();
             en.MoveNext(); //consume quote
-            l.Add(new types.MalAtom("with-meta"));
+            l.Add(new types.MalSymbol("with-meta"));
             types.MalVal metavalue = read_form(en);
             en.MoveNext(); //consume right paren or atom
             types.MalVal value = read_form(en);
@@ -75,7 +75,7 @@ namespace Mal
         {
             List<types.MalVal> l = new List<types.MalVal>();
             en.MoveNext(); //consume quote
-            l.Add(new types.MalAtom(formName));
+            l.Add(new types.MalSymbol(formName));
             types.MalVal value = read_form(en);
             l.Add(value);
             return l;
@@ -126,7 +126,16 @@ namespace Mal
 
         private static types.MalAtom read_atom(IEnumerator<Match> en)
         {
-            return new types.MalAtom(en.Current.Value.Trim(charsToTrim));
+            string token = en.Current.Value.Trim(charsToTrim);
+            float floatValue;
+            if (token[0] == '\"')
+                return new types.MalString(token.Substring(1,token.Length-2));
+            else if (token[0] == ':')
+                return new types.MalKeyword(token);
+            else if (float.TryParse(token, out floatValue))
+                return new types.MalNumber(floatValue);
+            else
+                return new types.MalSymbol(token);
         }
     }
 }
