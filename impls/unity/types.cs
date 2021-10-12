@@ -76,8 +76,24 @@ namespace Mal
 
             public override MalVal apply(MalList arguments)
             {
-                float result = value(((MalNumber)arguments.first()).value, ((MalNumber)arguments.rest().first()).value);
-                return new MalNumber(result);
+                float a, b;
+                try
+                {
+                    a = ((MalNumber)arguments.first()).value;
+                }
+                catch (InvalidCastException)
+                {
+                    throw new ArgumentException("First item is not a number.");
+                }
+                try
+                {
+                    b = ((MalNumber)arguments.rest().first()).value;
+                }
+                catch (InvalidCastException)
+                {
+                    throw new ArgumentException("Second item is not a number.");
+                }
+                return new MalNumber(value(a, b));
             }
         }
 
@@ -234,6 +250,11 @@ namespace Mal
             public bool isEmpty()
             {
                 return (value.Count == 0);
+            }
+
+            public int count()
+            {
+                return value.Count;
             }
         }
 

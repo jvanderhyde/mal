@@ -1,6 +1,6 @@
-//Copied from mal unity step 1.
-//Modified by James Vanderhyde, 9 October 2021
-//  Implemented Step 2.
+//Copied from mal unity step 2.
+//Modified by James Vanderhyde, 11 October 2021
+//  Implemented Step 3.
 
 using System;
 using System.IO;
