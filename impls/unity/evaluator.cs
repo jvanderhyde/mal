@@ -57,7 +57,7 @@ namespace Mal
                         while (!bindingList.isEmpty() && !bindingList.rest().isEmpty())
                         {
                             if (!(bindingList.first() is types.MalSymbol))
-                                throw new ArgumentException("Item to bind is not a symbol.");
+                                throw new ArgumentException("Item to bind is not a symbol, it is a " + bindingList.first().GetType());
                             string name = (bindingList.first() as types.MalSymbol).name;
                             types.MalVal value = eval_ast(bindingList.rest().first(), letEnv);
                             letEnv.set(name, value);
@@ -71,7 +71,7 @@ namespace Mal
                         while (index+1 < bindingVector.count())
                         {
                             if (!(bindingVector.nth(index) is types.MalSymbol))
-                                throw new ArgumentException("Item to bind is not a symbol.");
+                                throw new ArgumentException("Item to bind is not a symbol, it is a " + bindingVector.nth(index).GetType());
                             string name = (bindingVector.nth(index) as types.MalSymbol).name;
                             types.MalVal value = eval_ast(bindingVector.nth(index+1), letEnv);
                             letEnv.set(name, value);
@@ -105,7 +105,7 @@ namespace Mal
         {
             if (f is types.MalFunc)
                 return (f as types.MalFunc).apply(args);
-            else throw new ArgumentException("Item in function position is not a function.");
+            else throw new ArgumentException("Item in function position is not a function, it is a " + f.GetType());
         }
 
         public static types.MalVal eval_vector(types.MalVector tree, env.Environment env)

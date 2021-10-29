@@ -16,6 +16,7 @@ namespace Mal
             baseEnvironment.set("-", new types.MalBinaryOperator((a, b) => a - b));
             baseEnvironment.set("*", new types.MalBinaryOperator((a, b) => a * b));
             baseEnvironment.set("/", new types.MalBinaryOperator((a, b) => a / b));
+            baseEnvironment.set("π", new types.MalNumber(3.141592653589793f));
         }
 
         public class Environment
