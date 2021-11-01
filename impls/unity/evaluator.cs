@@ -94,13 +94,14 @@ namespace Mal
                 else if (form.Equals("do"))
                 {
                     types.MalList doForms = tree.rest();
-                    types.MalVal result = types.MalNil.malNil;
-                    while (!doForms.isEmpty())
+                    if (doForms.isEmpty())
+                        return types.MalNil.malNil;
+                    while (!doForms.rest().isEmpty())
                     {
-                        result = eval_ast(doForms.first(), env);
+                        eval_ast(doForms.first(), env);
                         doForms = doForms.rest();
                     }
-                    return result;
+                    return new types.TailCall(doForms.first(), env);
                 }
                 else if (form.Equals("if"))
                 {

@@ -189,7 +189,7 @@ namespace Mal
                 if (!foundAmpersand && !arguments.isEmpty())
                     throw new ArgumentException("Too many arguments passed to function.");
 
-                return evaluator.eval_ast(this.bodyTree, inner);
+                return new types.TailCall(this.bodyTree, inner);
             }
         }
 
