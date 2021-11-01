@@ -11,16 +11,27 @@ namespace Mal
     {
         public static types.MalVal eval_ast(types.MalVal tree, env.Environment env)
         {
-            if (tree is types.MalList)
-                return apply_list(tree as types.MalList, env);
-            else if (tree is types.MalVector)
-                return eval_vector(tree as types.MalVector, env);
-            else if (tree is types.MalMap)
-                return eval_map(tree as types.MalMap, env);
-            else if (tree is types.MalSymbol)
-                return eval_symbol(tree as types.MalSymbol, env);
-            else
-                return tree;
+            while (true)
+            {
+                if (tree is types.MalList)
+                {
+                    types.MalVal result = apply_list(tree as types.MalList, env);
+                    if (!(result is types.TailCall))
+                        return result;
+                    types.TailCall tailResult = result as types.TailCall;
+                    tree = tailResult.bodyTree;
+                    env = tailResult.outerEnvironment;
+                    continue;
+                }
+                else if (tree is types.MalVector)
+                    return eval_vector(tree as types.MalVector, env);
+                else if (tree is types.MalMap)
+                    return eval_map(tree as types.MalMap, env);
+                else if (tree is types.MalSymbol)
+                    return eval_symbol(tree as types.MalSymbol, env);
+                else
+                    return tree;
+            }
         }
 
         public static types.MalVal apply_list(types.MalList tree, env.Environment env)
@@ -78,7 +89,59 @@ namespace Mal
                             index += 2;
                         }
                     }
-                    return eval_ast(tree.rest().rest().first(), letEnv);
+                    return new types.TailCall(tree.rest().rest().first(), letEnv);
+                }
+                else if (form.Equals("do"))
+                {
+                    types.MalList doForms = tree.rest();
+                    types.MalVal result = types.MalNil.malNil;
+                    while (!doForms.isEmpty())
+                    {
+                        result = eval_ast(doForms.first(), env);
+                        doForms = doForms.rest();
+                    }
+                    return result;
+                }
+                else if (form.Equals("if"))
+                {
+                    if (tree.rest().isEmpty() || tree.rest().rest().isEmpty())
+                        throw new ArgumentException("if is missing a value.");
+                    types.MalVal condition = eval_ast(tree.rest().first(), env);
+                    if ((condition is types.MalNil) ||
+                        ((condition is types.MalBoolean) && (condition as types.MalBoolean).value==false))
+                    {
+                        if (tree.rest().rest().rest().isEmpty())
+                            return types.MalNil.malNil;
+                        return new types.TailCall(tree.rest().rest().rest().first(), env);
+                    }
+                    return new types.TailCall(tree.rest().rest().first(), env);
+                }
+                else if (form.Equals("fn*"))
+                {
+                    if (tree.rest().isEmpty())
+                        throw new ArgumentException("fn is missing binding symbols");
+                    if (!(tree.rest().first() is types.MalCollection))
+                        throw new ArgumentException("fn parameter must be a list or vector");
+                    types.MalCollection bindingList = tree.rest().first() as types.MalCollection;
+
+                    types.MalVal bodyTree = types.MalNil.malNil;
+                    if (!tree.rest().rest().isEmpty())
+                        bodyTree = tree.rest().rest().first();
+
+                    bool foundAmpersand = false;
+                    bool foundSymbolAfterAmpersand = false;
+                    foreach (types.MalVal bindingSymbol in bindingList)
+                    {
+                        if (!(bindingSymbol is types.MalSymbol))
+                            throw new ArgumentException("fn has something other than a binding symbol: " + bindingSymbol.GetType());
+                        if (foundSymbolAfterAmpersand)
+                            throw new ArgumentException("fn has extra parameters after the &.");
+                        if (foundAmpersand)
+                            foundSymbolAfterAmpersand = true;
+                        if (((types.MalSymbol)bindingSymbol).name.Equals("&"))
+                            foundAmpersand = true;
+                    }
+                    return new types.FuncClosure(env, bindingList, bodyTree);
                 }
             }
 

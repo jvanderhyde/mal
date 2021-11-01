@@ -1,4 +1,4 @@
-//Environent functions for mal
+//Environment functions for mal
 //Created by James Vanderhyde, 11 October 2021
 
 using System;
@@ -12,11 +12,7 @@ namespace Mal
         public static readonly Environment baseEnvironment = new Environment(null);
         static env()
         {
-            baseEnvironment.set("+", new types.MalBinaryOperator((a, b) => a + b));
-            baseEnvironment.set("-", new types.MalBinaryOperator((a, b) => a - b));
-            baseEnvironment.set("*", new types.MalBinaryOperator((a, b) => a * b));
-            baseEnvironment.set("/", new types.MalBinaryOperator((a, b) => a / b));
-            baseEnvironment.set("π", new types.MalNumber(3.141592653589793f));
+            baseEnvironment.setAll(core.ns);
         }
 
         public class Environment
@@ -28,6 +24,12 @@ namespace Mal
             {
                 this.outer = outer;
                 this.dict = new Dictionary<string, types.MalVal>();
+            }
+
+            public void setAll(Dictionary<string, types.MalVal> ns)
+            {
+                foreach (KeyValuePair<string, types.MalVal> item in ns)
+                    this.set(item.Key, item.Value);
             }
 
             public void set(string key, types.MalVal value)

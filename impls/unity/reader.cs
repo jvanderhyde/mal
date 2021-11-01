@@ -129,11 +129,17 @@ namespace Mal
             string token = en.Current.Value.Trim(charsToTrim);
             float floatValue;
             if (token[0] == '\"')
-                return new types.MalString(token.Substring(1,token.Length-2));
+                return new types.MalString(token.Substring(1, token.Length - 2));
             else if (token[0] == ':')
                 return new types.MalKeyword(token);
             else if (float.TryParse(token, out floatValue))
                 return new types.MalNumber(floatValue);
+            else if (token.Equals("true"))
+                return new types.MalBoolean(true);
+            else if (token.Equals("false"))
+                return new types.MalBoolean(false);
+            else if (token.Equals("nil"))
+                return new types.MalNil();
             else
                 return new types.MalSymbol(token);
         }

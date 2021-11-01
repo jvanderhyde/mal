@@ -27,6 +27,10 @@ namespace Mal
                 pr_map(tree as types.MalMap, sb);
             else if (tree is types.MalSymbol)
                 pr_symbol(tree as types.MalSymbol, sb);
+            else if (tree is types.MalBoolean)
+                pr_boolean(tree as types.MalBoolean, sb);
+            else if (tree is types.MalNil)
+                pr_nil(tree as types.MalNil, sb);
             else if (tree is types.MalNumber)
                 pr_number(tree as types.MalNumber, sb);
             else if (tree is types.MalString)
@@ -77,6 +81,19 @@ namespace Mal
             sb.Append(tree.value);
         }
 
+        private static void pr_boolean(types.MalBoolean tree, StringBuilder sb)
+        {
+            if (tree.value)
+                sb.Append("true");
+            else
+                sb.Append("false");
+        }
+
+        private static void pr_nil(types.MalNil tree, StringBuilder sb)
+        {
+            sb.Append("nil");
+        }
+
         private static void pr_symbol(types.MalSymbol tree, StringBuilder sb)
         {
             sb.Append(tree.name);
@@ -97,7 +114,7 @@ namespace Mal
 
         private static void pr_func(types.MalFunc tree, StringBuilder sb)
         {
-            sb.Append("Function");
+            sb.Append("#<function>");
             //sb.Append(tree.value);
         }
 
