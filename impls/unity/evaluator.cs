@@ -144,6 +144,16 @@ namespace Mal
                     }
                     return new types.FuncClosure(env, bindingList, bodyTree);
                 }
+                else if (form.Equals("recur"))
+                {
+                    env.Environment recurPointEnv = env;
+                    while (recurPointEnv != null && recurPointEnv.recurPoint == null)
+                        recurPointEnv = recurPointEnv.outer;
+                    if (recurPointEnv==null)
+                        throw new ArgumentException("recur must be inside fn or loop.");
+                    types.MalList recurArgs = eval_list(tree.rest(), env);
+                    return apply_function(recurPointEnv.recurPoint, recurArgs);
+                }
             }
 
             //Assume the form is a function, so evaluate all of the arguments

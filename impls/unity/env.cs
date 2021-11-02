@@ -17,13 +17,15 @@ namespace Mal
 
         public class Environment
         {
-            private Environment outer;
+            public readonly Environment outer;
             private Dictionary<string, types.MalVal> dict;
+            public readonly types.FuncClosure recurPoint;
 
-            public Environment(Environment outer)
+            public Environment(Environment outer, types.FuncClosure recurPoint = null)
             {
                 this.outer = outer;
                 this.dict = new Dictionary<string, types.MalVal>();
+                this.recurPoint = recurPoint;
             }
 
             public void setAll(Dictionary<string, types.MalVal> ns)
