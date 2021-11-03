@@ -62,34 +62,30 @@ namespace Mal
                     if (tree.rest().rest().isEmpty())
                         throw new ArgumentException("Let is missing a value.");
                     env.Environment letEnv = new env.Environment(env, true);
-                    if (tree.rest().first() is types.MalList)
-                    {
-                        types.MalList bindingList = tree.rest().first() as types.MalList;
-                        while (!bindingList.isEmpty() && !bindingList.rest().isEmpty())
-                        {
-                            if (!(bindingList.first() is types.MalSymbol))
-                                throw new ArgumentException("Item to bind is not a symbol, it is a " + bindingList.first().GetType());
-                            string name = (bindingList.first() as types.MalSymbol).name;
-                            types.MalVal value = eval_ast(bindingList.rest().first(), letEnv);
-                            letEnv.set(name, value);
-                            bindingList = bindingList.rest().rest();
-                        }
-                    }
-                    else
-                    {
-                        types.MalVector bindingVector = tree.rest().first() as types.MalVector;
-                        int index = 0;
-                        while (index+1 < bindingVector.count())
-                        {
-                            if (!(bindingVector.nth(index) is types.MalSymbol))
-                                throw new ArgumentException("Item to bind is not a symbol, it is a " + bindingVector.nth(index).GetType());
-                            string name = (bindingVector.nth(index) as types.MalSymbol).name;
-                            types.MalVal value = eval_ast(bindingVector.nth(index+1), letEnv);
-                            letEnv.set(name, value);
-                            index += 2;
-                        }
-                    }
+                    bind(tree.rest().first(), letEnv);
                     return new types.TailCall(tree.rest().rest().first(), letEnv);
+                }
+                else if (form.Equals("loop*"))
+                {
+                    if (tree.rest().isEmpty() || !(tree.rest().first() is types.MalList || tree.rest().first() is types.MalVector))
+                        throw new ArgumentException("Loop is missing a list of bindings.");
+                    if (tree.rest().rest().isEmpty())
+                        throw new ArgumentException("Loop is missing a value.");
+                    types.MalVal bodyTree = types.MalNil.malNil;
+                    if (!tree.rest().rest().isEmpty())
+                        bodyTree = tree.rest().rest().first();
+                    types.MalCollection bindingCollection = tree.rest().first() as types.MalCollection;
+                    types.MalVector unboundSymbols = new types.MalVector();
+                    bool symbol = true;
+                    foreach (types.MalVal item in bindingCollection)
+                    {
+                        if (symbol)
+                            unboundSymbols.conj(item);
+                        symbol = !symbol;
+                    }
+                    env.Environment loopEnv = new env.Environment(env, true, new types.FuncClosure(env, unboundSymbols, bodyTree));
+                    bind(bindingCollection, loopEnv);
+                    return new types.TailCall(bodyTree, loopEnv);
                 }
                 else if (form.Equals("do"))
                 {
@@ -163,6 +159,37 @@ namespace Mal
             types.MalVal f = eval_ast(tree.first(), fEnv);
             types.MalList args = eval_list(tree.rest(), fEnv);
             return apply_function(f, args);
+        }
+
+        private static void bind(types.MalVal bindingCollection, env.Environment env)
+        {
+            if (bindingCollection is types.MalList)
+            {
+                types.MalList bindingList = bindingCollection as types.MalList;
+                while (!bindingList.isEmpty() && !bindingList.rest().isEmpty())
+                {
+                    if (!(bindingList.first() is types.MalSymbol))
+                        throw new ArgumentException("Item to bind is not a symbol, it is a " + bindingList.first().GetType());
+                    string name = (bindingList.first() as types.MalSymbol).name;
+                    types.MalVal value = eval_ast(bindingList.rest().first(), env);
+                    env.set(name, value);
+                    bindingList = bindingList.rest().rest();
+                }
+            }
+            else
+            {
+                types.MalVector bindingVector = bindingCollection as types.MalVector;
+                int index = 0;
+                while (index + 1 < bindingVector.count())
+                {
+                    if (!(bindingVector.nth(index) is types.MalSymbol))
+                        throw new ArgumentException("Item to bind is not a symbol, it is a " + bindingVector.nth(index).GetType());
+                    string name = (bindingVector.nth(index) as types.MalSymbol).name;
+                    types.MalVal value = eval_ast(bindingVector.nth(index + 1), env);
+                    env.set(name, value);
+                    index += 2;
+                }
+            }
         }
 
         public static types.MalList eval_list(types.MalList tree, env.Environment env)
