@@ -61,7 +61,7 @@ namespace Mal
                         throw new ArgumentException("Let is missing a list of bindings.");
                     if (tree.rest().rest().isEmpty())
                         throw new ArgumentException("Let is missing a value.");
-                    env.Environment letEnv = new env.Environment(env);
+                    env.Environment letEnv = new env.Environment(env, true);
                     if (tree.rest().first() is types.MalList)
                     {
                         types.MalList bindingList = tree.rest().first() as types.MalList;
@@ -96,26 +96,30 @@ namespace Mal
                     types.MalList doForms = tree.rest();
                     if (doForms.isEmpty())
                         return types.MalNil.malNil;
+                    env.Environment doEnv = new env.Environment(env, false);
                     while (!doForms.rest().isEmpty())
                     {
-                        eval_ast(doForms.first(), env);
+                        eval_ast(doForms.first(), doEnv);
                         doForms = doForms.rest();
                     }
-                    return new types.TailCall(doForms.first(), env);
+                    env.Environment doEnvTail = new env.Environment(env, true);
+                    return new types.TailCall(doForms.first(), doEnvTail);
                 }
                 else if (form.Equals("if"))
                 {
                     if (tree.rest().isEmpty() || tree.rest().rest().isEmpty())
                         throw new ArgumentException("if is missing a value.");
-                    types.MalVal condition = eval_ast(tree.rest().first(), env);
+                    env.Environment ifEnv = new env.Environment(env, false);
+                    types.MalVal condition = eval_ast(tree.rest().first(), ifEnv);
+                    env.Environment ifEnvTail = new env.Environment(env, true);
                     if ((condition is types.MalNil) ||
                         ((condition is types.MalBoolean) && (condition as types.MalBoolean).value==false))
                     {
                         if (tree.rest().rest().rest().isEmpty())
                             return types.MalNil.malNil;
-                        return new types.TailCall(tree.rest().rest().rest().first(), env);
+                        return new types.TailCall(tree.rest().rest().rest().first(), ifEnvTail);
                     }
-                    return new types.TailCall(tree.rest().rest().first(), env);
+                    return new types.TailCall(tree.rest().rest().first(), ifEnvTail);
                 }
                 else if (form.Equals("fn*"))
                 {
@@ -146,19 +150,18 @@ namespace Mal
                 }
                 else if (form.Equals("recur"))
                 {
-                    env.Environment recurPointEnv = env;
-                    while (recurPointEnv != null && recurPointEnv.recurPoint == null)
-                        recurPointEnv = recurPointEnv.outer;
-                    if (recurPointEnv==null)
-                        throw new ArgumentException("recur must be inside fn or loop.");
-                    types.MalList recurArgs = eval_list(tree.rest(), env);
-                    return apply_function(recurPointEnv.recurPoint, recurArgs);
+                    if (env.recurPoint==null)
+                        throw new ArgumentException("recur must be in tail position inside fn or loop.");
+                    env.Environment recurEnv = new env.Environment(env, false);
+                    types.MalList recurArgs = eval_list(tree.rest(), recurEnv);
+                    return apply_function(env.recurPoint, recurArgs);
                 }
             }
 
             //Assume the form is a function, so evaluate all of the arguments
-            types.MalVal f = eval_ast(tree.first(), env);
-            types.MalList args = eval_list(tree.rest(), env);
+            env.Environment fEnv = new env.Environment(env, false);
+            types.MalVal f = eval_ast(tree.first(), fEnv);
+            types.MalList args = eval_list(tree.rest(), fEnv);
             return apply_function(f, args);
         }
 

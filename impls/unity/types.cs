@@ -170,7 +170,7 @@ namespace Mal
 
             public override MalVal apply(MalList arguments)
             {
-                env.Environment inner = new env.Environment(outerEnvironment, this);
+                env.Environment inner = new env.Environment(outerEnvironment, true, this);
                 bool foundAmpersand = false;
                 foreach (MalSymbol symbol in this.unboundSymbols)
                 {

@@ -9,7 +9,7 @@ namespace Mal
 {
     public class env
     {
-        public static readonly Environment baseEnvironment = new Environment(null);
+        public static readonly Environment baseEnvironment = new Environment(null, false);
         static env()
         {
             baseEnvironment.setAll(core.ns);
@@ -21,11 +21,16 @@ namespace Mal
             private Dictionary<string, types.MalVal> dict;
             public readonly types.FuncClosure recurPoint;
 
-            public Environment(Environment outer, types.FuncClosure recurPoint = null)
+            public Environment(Environment outer, bool tailPosition, types.FuncClosure recurPoint = null)
             {
                 this.outer = outer;
                 this.dict = new Dictionary<string, types.MalVal>();
-                this.recurPoint = recurPoint;
+                if (!tailPosition)
+                    this.recurPoint = null;
+                else if (recurPoint != null)
+                    this.recurPoint = recurPoint;
+                else
+                    this.recurPoint = outer.recurPoint;
             }
 
             public void setAll(Dictionary<string, types.MalVal> ns)
