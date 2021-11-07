@@ -9,10 +9,15 @@ namespace Mal
 {
     public class evaluator
     {
+        public static readonly int maxIntInFloat = 16777216;
+
         public static types.MalVal eval_ast(types.MalVal tree, env.Environment env)
         {
-            while (true)
+            int numIterations = 0;
+            while (numIterations < maxIntInFloat)
             {
+                numIterations++;
+
                 if (tree is types.MalList)
                 {
                     types.MalVal result = apply_list(tree as types.MalList, env);
@@ -32,6 +37,7 @@ namespace Mal
                 else
                     return tree;
             }
+            throw new ArgumentException("Possible infinite loop.");
         }
 
         public static types.MalVal apply_list(types.MalList tree, env.Environment env)

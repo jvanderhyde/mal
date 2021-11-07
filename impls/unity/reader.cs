@@ -20,7 +20,7 @@ namespace Mal
 
             string expression = @"[\s,]*(~@|[\[\]{}()'`~^@]|""(?:\\.|[^\\""])*"" ?|;.*|[^\s\[\]{ } ('""`,;)]*)";
             MatchCollection mc = Regex.Matches(input, expression);
-            IEnumerable<Match> enumerable = mc;
+            IEnumerable<Match> enumerable = (IEnumerable<Match>)mc;
             IEnumerator<Match> en = enumerable.GetEnumerator();
             en.MoveNext(); //get ready for first read
             return read_form(en);
