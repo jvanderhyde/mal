@@ -2,8 +2,8 @@
 //Created by James Vanderhyde, 30 September 2021
 
 using System;
-using System.Text.RegularExpressions;
 using System.Text;
+using System.Text.RegularExpressions;
 using Mal;
 
 namespace Mal
@@ -96,7 +96,10 @@ namespace Mal
 
         private static void pr_symbol(types.MalSymbol tree, StringBuilder sb)
         {
-            sb.Append(tree.name);
+            if (tree.HasSimpleName())
+                sb.Append(tree.name);
+            else
+                sb.Append("#\"" + tree.name + "\"");
         }
 
         private static void pr_string(types.MalString tree, StringBuilder sb)

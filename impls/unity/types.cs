@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections;
+using System.Text.RegularExpressions;
 using Mal;
 
 namespace Mal
@@ -21,6 +22,12 @@ namespace Mal
         public class MalSymbol : MalAtom
         {
             public readonly string name;
+
+            public bool HasSimpleName()
+            {
+                Regex rg = new Regex(@"^[a-zA-Z_\*\+|!\-\?\<\>\=][0-9a-zA-Z_\*\+|!\-\?\<\>\=]*$");
+                return rg.IsMatch(name);
+            }
 
             public MalSymbol(string name)
             {

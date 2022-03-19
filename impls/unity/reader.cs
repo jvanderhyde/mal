@@ -23,7 +23,9 @@ namespace Mal
             IEnumerable<Match> enumerable = (IEnumerable<Match>)mc;
             IEnumerator<Match> en = enumerable.GetEnumerator();
             en.MoveNext(); //get ready for first read
-            return read_form(en);
+            types.MalVal val = read_form(en);
+            //Console.WriteLine(printer.pr_str(val));
+            return val;
         }
 
         private static types.MalVal read_form(IEnumerator<Match> en)
@@ -54,8 +56,20 @@ namespace Mal
                 return listToMalList(read_quote(en, "deref"));
             else if (token[0] == '^')
                 return listToMalList(read_meta(en));
+            else if (token[0] == '#' && token.Length==1)
+                return read_hash_form(en);
             else
                 return read_atom(en);
+        }
+
+        private static types.MalVal read_hash_form(IEnumerator<Match> en)
+        {
+            en.MoveNext(); //consume hash
+            types.MalVal hashvalue = read_form(en);
+            if (hashvalue is types.MalString)
+                return new types.MalSymbol((hashvalue as types.MalString).value);
+            else
+                throw new ArgumentException("Unknown hash form: #"+hashvalue);
         }
 
         private static List<types.MalVal> read_meta(IEnumerator<Match> en)
@@ -127,12 +141,11 @@ namespace Mal
         private static types.MalAtom read_atom(IEnumerator<Match> en)
         {
             string token = en.Current.Value.Trim(charsToTrim);
-            float floatValue;
             if (token[0] == '\"')
                 return new types.MalString(token.Substring(1, token.Length - 2));
             else if (token[0] == ':')
                 return new types.MalKeyword(token);
-            else if (float.TryParse(token, out floatValue))
+            else if (float.TryParse(token, out float floatValue))
                 return new types.MalNumber(floatValue);
             else if (token.Equals("true"))
                 return new types.MalBoolean(true);
